@@ -1,13 +1,13 @@
 require 'screenshot/version'
 
 module Screenshot
-  def self.capture(browser, file_name, page_elements)
+  def self.capture(browser, file_name, page_elements, offset = [0, 0, 0, 0])
     screenshot_directory = ENV['LANGUAGE_SCREENSHOT_PATH'] || 'screenshots'
     FileUtils.mkdir_p screenshot_directory
     screenshot_path = "#{screenshot_directory}/#{file_name}"
 
     browser.screenshot.save screenshot_path
-    self.crop_image screenshot_path, page_elements, nil
+    self.crop_image screenshot_path, page_elements, offset
   end
 
   def self.zoom_browser(browser, rate)
@@ -18,10 +18,10 @@ module Screenshot
   end
 
   def self.crop_image(path, page_elements, offset_element)
-    if offset_element
-      offset_rectangle = coordinates_from_page_element(offset_element)
+    if offset_element.is_a? Array
+      offset_rectangle = offset_element
     else
-      offset_rectangle = [0, 0, 0, 0]
+      offset_rectangle = coordinates_for_iframe_offset(offset_element)
     end
     rectangles = self.coordinates_from_page_elements(page_elements)
     crop_rectangle = rectangle(rectangles, offset_rectangle)
@@ -53,9 +53,11 @@ module Screenshot
     # We are calculating the offset co-ordinates
     x_offset = offset_rectangle[0]
     y_offset = offset_rectangle[1]
+    width_offset = offset_rectangle[2]
+    height_offset = offset_rectangle[3]
 
     # The new rectangle is constructed with all the co-ordinates calculated above
-    [top_left_x + x_offset, top_left_y + y_offset, width, height]
+    [top_left_x + x_offset, top_left_y + y_offset, width + width_offset, height + height_offset]
   end
 
   def self.coordinates_from_page_elements(page_elements)
@@ -66,6 +68,10 @@ module Screenshot
 
   def self.coordinates_from_page_element(page_element)
     [page_element.element.wd.location.x, page_element.element.wd.location.y, page_element.element.wd.size.width, page_element.element.wd.size.height]
+  end
+
+  def self.coordinates_for_iframe_offset(page_element)
+    [page_element.element.wd.location.x, page_element.element.wd.location.y, 0, 0]
   end
 
   def self.top_left_x_coordinates(input_rectangles)

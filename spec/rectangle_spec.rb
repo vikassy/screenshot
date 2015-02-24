@@ -1,7 +1,17 @@
 require_relative '../lib/screenshot.rb'
 
 # Rectangle is defined as set of co-ordinates represented by top left x, top left y, width, height
+# Iframe Offset rectangle will always have width and height to be 0, because these parameters
+# are not required for finding the correct cropped rectangle
 describe 'Rectangle' do
+  it 'should return the co-ordinates of the rectangle with given offset' do
+    input_rectangle = [0, 0, 1, 1]
+    input_rectangles = [input_rectangle]
+    offset_rectangle = [1, 1, 2, 2]
+    output_rectangle = [1, 1, 3, 3]
+    expect(Screenshot.rectangle(input_rectangles, offset_rectangle)).to eq(output_rectangle)
+  end
+
   it 'should return the co-ordinates of provided 1 rectangle' do
     input_rectangle = [0, 0, 1, 1]
     input_rectangles = [input_rectangle]
@@ -10,10 +20,10 @@ describe 'Rectangle' do
 
   it 'should return the co-ordinates of the rectangle which is inside a iframe' do
     input_rectangle  = [50, 50, 10, 10]
-    iframe_rectangle = [100, 100, 20, 20]
+    iframe_offset_rectangle = [100, 100, 0, 0]
     input_rectangles = [input_rectangle]
     output_rectangle = [150, 150, 10, 10]
-    expect(Screenshot.rectangle(input_rectangles, iframe_rectangle)).to eq(output_rectangle)
+    expect(Screenshot.rectangle(input_rectangles, iframe_offset_rectangle)).to eq(output_rectangle)
   end
 
   it 'if we provide 2 rectangles and if one contains the other then it should return co-ordinates of bigger rectangle' do
